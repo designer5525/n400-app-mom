@@ -15,6 +15,7 @@ personal,"how did you become a permanent resident?","你是如何成為永久居
 personal,"Who sponsored you?","誰擔保你的？","",0
 personal,"what's your sponsor's name?","擔保人的名字是什麼？","",0
 personal,"when did your sponsor become us citizen?","你的擔保人什麼時候成為美國公民的？","",0
+personal,"How your sponsor gets the green card?","你的擔保人是怎麼拿到綠卡的","",0
 personal,"Why are you eligible to become a U.S. citizen?","為什麼你有資格成為美國公民？","",0
 personal,"What's your legal name?","你的法定姓名是什麼？","",0
 personal,"Can you confirm your legal name?","你能確認你的法定姓名嗎？","",0
@@ -88,12 +89,20 @@ personal,"Are you married?","你結婚了嗎？","",0
 personal,"How many times have you been married?","你結過幾次婚？","",0
 personal,"Is your spouse a current member of the U.S. armed forces?","你的配偶目前是美國武裝部隊的成員嗎？","",0
 personal,"What's your spouse's name?","你配偶的名字是什麼？","",0
+personal,"Will you apply green card for him after your naturalization?","你成為公民後會申請你的配偶來美國嗎？","",0
 personal,"Do you have any children?","你有孩子嗎？","",0
+personal,"Is your daughter in America?","你女兒在美國嗎？","",0
+personal,"What's your daughter's status?","你女兒的身分狀態是什麼？","",0
 personal,"Are you currently employed?","你目前有工作嗎？","",0
 personal,"are you currently working?","你目前在工作嗎？","",0
 personal,"Who's your current employer?","你目前的雇主是誰？","",0
 personal,"What do you do for a living?","你靠什麼謀生？","",0
 personal,"Where do you work now?","你現在在哪裡工作？","",0
+personal,"What's your current jobs address?","你現在工作的地址是什麼？","",0
+personal,"Why do you work in Newjersey as you now living in New York?","你住在紐約為什麼要去新澤西工作？","",0
+personal,"Where does your mother live?","你媽媽在哪裡居住？","",0
+personal,"How do you go to work?","你是如何前往工作的","",0
+personal,"How many days do you work per week?","你每週工作多少天？","",0
 personal,"What's your occupation?","你的職業是什麼？","",0
 personal,"What did you do previously? and since when did you work for that job?","你以前做什麼？從什麼時候開始做那份工作的？","",0
 personal,"What did you do previously?","你以前做什麼？","",0
@@ -114,6 +123,7 @@ personal,"Where is your last trip?","你最後一次旅行去了哪裡？","",0
 personal,"what date did you return on the last trip?","最後一次旅行你哪天回來的？","",0
 personal,"When and where is your last trip?","最後一次旅行是什麼時候、去了哪裡？","",0
 personal,"Where did you go for the last trip?","最後一次旅行你去了哪裡？","",0
+personal,"Do you have any new trips?","你有新的旅程嗎？","",0
 personal,"have you filed your tax return last year?","你去年報稅了嗎？","",0
 personal,"do you believed in religion freedom?","你相信宗教自由嗎？","",0
 personal,"Do you have any physical or mental condition that prevents you from learning English or civics?","你有任何生理或心理狀況阻礙你學習英語或公民知識嗎？","",0
