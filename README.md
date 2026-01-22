@@ -1,2 +1,2 @@
-# n400-app-mom
-mom專屬
+# n400-app
+n400 interview preperation
