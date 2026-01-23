@@ -29,17 +29,29 @@ const qCounter = document.getElementById('q-current');
 const qTotal = document.getElementById('q-total');
 const starBtn = document.getElementById('btn-star');
 const mainBtn = document.getElementById('main-btn');
+
 // --- FUNCTIONS ---
 
-// --- 新增：從 CSV 載入資料並關聯 ---
-// --- 修改後的資料載入函數 ---
+// ✅ FIXED: Get best English voice - moved to top level
+function getBestVoice() {
+    const voices = synth.getVoices();
+    
+    // Priority: 1. Samantha (iOS) | 2. Google US | 3. Any enhanced en-US | 4. Any en-US | 5. Any English
+    return voices.find(v => v.name.includes('Samantha')) || 
+           voices.find(v => v.name.includes('Google US English')) ||
+           voices.find(v => v.lang === 'en-US' && v.name.includes('Enhanced')) ||
+           voices.find(v => v.lang.startsWith('en-US')) ||
+           voices.find(v => v.lang.startsWith('en-')) ||
+           voices[0];
+}
+
+// Load data from CSV
 async function Data() {
     try {
         const response = await fetch('n400_data.csv?t=' + Date.now());
         const data = await response.text();
         const lines = data.split(/\r?\n/).filter(line => line.trim() !== "");
 
-        // 重置數組
         personalQuestions = [];
         part9Questions = [];
         glossaryData = [];
@@ -52,8 +64,6 @@ async function Data() {
             const content = matches[1] ? matches[1].replace(/^"|"$/g, '').trim() : "";
             const trans = matches[2] ? matches[2].replace(/^"|"$/g, '').trim() : "";
             const extra = matches[3] ? matches[3].replace(/^"|"$/g, '').trim() : "";
-            
-            // 讀取第五欄位並轉為數字
             const catVal = matches[4] ? parseInt(matches[4].replace(/^"|"$/g, '').trim()) : 0;
 
             if (type === 'personal') {
@@ -70,36 +80,38 @@ async function Data() {
                 });
             }
         }
-        console.log("N400 題庫載入成功，名詞數量:", glossaryData.length);
+        console.log("N400 題庫載入成功，單詞數量:", glossaryData.length);
     } catch (e) {
         console.error("載入 CSV 失敗:", e);
     }
 }
 
-// 確保執行時名稱一致
+// ✅ FIXED: Added delay for iOS voice loading
 window.addEventListener('DOMContentLoaded', async () => {
-    await Data(); 
+    await Data();
+    
+    // Give iOS/iPad time to load voices
+    setTimeout(() => {
+        window.speechSynthesis.getVoices();
+    }, 100);
+    
     window.speechSynthesis.onvoiceschanged = () => {
         window.speechSynthesis.getVoices();
     };
 });
 
-// 小紅書跳轉
+// Jump to Xiaohongshu
 function goToXiaohongshu() {
-    // 請將下方的網址替換為你複製的小紅書主頁連結
     const myRedBookUrl = "https://www.xiaohongshu.com/user/profile/631f3bfd00000000230254b1";
     
-   // 判斷是否為電腦端 (如果寬度大於 1024px 通常是電腦)
     if (window.innerWidth > 1024) {
-        // 電腦端：強制開啟新分頁，避免被原頁面攔截
         window.open(myRedBookUrl, "_blank");
     } else {
-        // 手機端：保持現有的跳轉方式，這能呼起小紅書 App
         window.location.href = myRedBookUrl;
     }
 }
 
-// 洗牌
+// Shuffle array
 function shuffleArray(array) {
     let curId = array.length;
     while (0 !== curId) {
@@ -110,7 +122,7 @@ function shuffleArray(array) {
     return array;
 }
 
-// 切換 Glossary 菜單
+// Glossary menu navigation
 function showGlossaryMenu() {
     homeScreen.classList.add('hidden');
     glossaryMenuScreen.classList.remove('hidden');
@@ -120,9 +132,9 @@ function exitGlossaryMenu() {
     homeScreen.classList.remove('hidden');
 }
 
-// 啟動練習
+// Start practice session
 function startSession(mode, catId = 0) {
-  if (personalQuestions.length === 0) {
+    if (personalQuestions.length === 0) {
         console.log("數據尚未就緒，嘗試重新載入...");
         return; 
     }
@@ -140,7 +152,6 @@ function startSession(mode, catId = 0) {
         pool = glossaryData.filter(item => item.cat === catId);
         if (pool.length === 0 && glossaryData.length > 0) {
             console.warn(`分類 ID ${catId} 中沒有資料，請檢查 CSV`);
-            // 備選方案：如果分類找不到，顯示全部名詞
             pool = [...glossaryData]; 
         }
         questionQueue = shuffleArray(pool);
@@ -161,7 +172,7 @@ function startSession(mode, catId = 0) {
     loadQuestion(false);
 }
 
-// 重新開始
+// Restart session
 function restartSession() {
     clearAudio();
     if (currentMode === 'glossary') {
@@ -171,16 +182,14 @@ function restartSession() {
     }
 }
 
-// 退出練習
+// Exit practice
 function exitPractice() {
     clearAudio();
-  // 1. 重置狀態變數，讓下次進入時能判定為「尚未開始」
     isSessionStarted = false;
-  // 2. 恢復按鈕的藍色樣式類名
     const mainBtn = document.getElementById('main-btn');
     if (mainBtn) mainBtn.classList.add('colorful');
     
-  practiceScreen.classList.add('hidden');
+    practiceScreen.classList.add('hidden');
     if (currentMode === 'glossary') {
         glossaryMenuScreen.classList.remove('hidden');
     } else {
@@ -188,7 +197,7 @@ function exitPractice() {
     }
 }
 
-// 清除語音動畫與時間軸
+// Clear audio and timeouts
 function clearAudio() {
     synth.cancel();
     if (audioTimeout) clearTimeout(audioTimeout);
@@ -197,19 +206,17 @@ function clearAudio() {
     setAnimation(false);
 }
 
-// 更新主按鈕文字
+// Update main button text
 function updateMainButtonText() {
     mainBtn.innerHTML = isSessionStarted ? "我回答<br>完了" : "開始<br>面試";
 }
 
-// 主按鈕行為
+// Main button action
 function handleMainAction() {
     clearAudio();
     if (!isSessionStarted) {
         isSessionStarted = true;
-        // --- 點擊後移除藍色類名 ---
         mainBtn.classList.remove('colorful');
-      
         updateMainButtonText();
         audioTimeout = setTimeout(() => playCurrentAudio(), 500);
     } else {
@@ -217,17 +224,17 @@ function handleMainAction() {
     }
 }
 
-// 取得當前題目
+// Get current item
 function getCurrentItem() {
     return questionQueue[currentIndex];
 }
 
-// 取得字串識別
+// Get string identifier
 function getQString(item) {
     return typeof item === 'string' ? item : item.word;
 }
 
-// 載入題目
+// Load question
 function loadQuestion(autoPlay) {
     if (currentIndex >= questionQueue.length) {
         alert("練習完成！即將返回主頁。");
@@ -248,7 +255,7 @@ function loadQuestion(autoPlay) {
     if (autoPlay) audioTimeout = setTimeout(() => playCurrentAudio(), 500);
 }
 
-// 顯示 / 隱藏題目卡
+// Toggle question card visibility
 function toggleQuestionCard() {
     if (isRevealed) {
         isRevealed = false;
@@ -279,13 +286,13 @@ function toggleQuestionCard() {
     }
 }
 
-// 下一題
+// Next question
 function nextQuestion() {
     currentIndex++;
     loadQuestion(true);
 }
 
-// 播放當前題目語音
+// Play current audio
 function playCurrentAudio() {
     const item = getCurrentItem();
     if (currentMode === 'glossary') {
@@ -295,85 +302,45 @@ function playCurrentAudio() {
     }
 }
 
-// 重播
+// Replay audio
 function replayAudio() {
     clearAudio();
     playCurrentAudio();
 }
 
-// 語音動畫控制
+// Animation control
 function setAnimation(isActive) {
     audioAnim.classList.toggle('playing', isActive);
 }
 
-// 語音朗讀
-
+// ✅ FIXED: Text-to-speech with proper voice assignment
 function speakText(text, showAnim = false) {
-    // 先清理掉之前正在讀的內容
     synth.cancel();
 
-    // 1. 只提取英文部分進行朗讀（避免語音引擎嘗試讀中文）
+    // Extract English part only
     const englishText = text.split(/[\u4e00-\u9fa5]/)[0].trim();
-
-    // 2. 依照 "|" 符號拆分英文段落
     const segments = englishText.split('|');
     let currentSegment = 0;
 
-    // 定義一個內部的播放函數來實現循環停頓
     function playNext() {
         if (currentSegment < segments.length) {
             const utterance = new SpeechSynthesisUtterance(segments[currentSegment].trim());
             utterance.lang = 'en-US';
             utterance.rate = 0.9;
+            
+            // ✅ KEY FIX: Actually assign the English voice!
+            utterance.voice = getBestVoice();
 
-            // 定義一個函數來選取最好的聲音
-function getBestVoice() {
-    let voices = synth.getVoices();
-    
-    // 優先順序：1. iPhone 的 Samantha | 2. Google 的高品質音 | 3. 任何 en-US 的聲音
-    return voices.find(v => v.name.includes('Samantha')) || 
-           voices.find(v => v.name.includes('Google US English')) ||
-           voices.find(v => v.lang === 'en-US' && v.name.includes('Enhanced')) ||
-           voices.find(v => v.lang.startsWith('en-US')) ||
-           voices[0];
-}
-
-// 播放函數
-function speak(text) {
-    if (synth.speaking) { synth.cancel(); } // 如果正在說話，先停止
-
-    const utterance = new SpeechSynthesisUtterance(text);
-    
-    // 關鍵：每次播放前重新獲取一次最好的聲音，確保手機已加載完成
-    utterance.voice = getBestVoice();
-    
-    // 參數調整
-    utterance.rate = 0.85;  // 稍慢，適合練習
-    utterance.pitch = 1.0;  // 音調正常
-    
-    synth.speak(utterance);
-}
-
-// 解決 Chrome/Safari 的異步加載問題
-if (speechSynthesis.onvoiceschanged !== undefined) {
-    speechSynthesis.onvoiceschanged = getBestVoice;
-}
-
-            // 動態效果控制
             if (showAnim) {
                 utterance.onstart = () => setAnimation(true);
-                // 注意：這裡不直接設為 false，改在 onend 判斷
             }
 
-            // 當這一段讀完後的處理
             utterance.onend = () => {
                 currentSegment++;
                 if (currentSegment < segments.length) {
-                    // 關鍵：如果還沒讀完，關閉動畫並等待 2 秒再讀下一段
-                    if (showAnim) setAnimation(false); 
-                    setTimeout(playNext, 2000); 
+                    if (showAnim) setAnimation(false);
+                    setTimeout(playNext, 2000);
                 } else {
-                    // 全部讀完後，確保動畫關閉
                     if (showAnim) setAnimation(false);
                 }
             };
@@ -386,23 +353,31 @@ if (speechSynthesis.onvoiceschanged !== undefined) {
         }
     }
 
-    // 開始執行第一段播放
     playNext();
 }
 
-
-// Glossary 專用朗讀
+// ✅ FIXED: Glossary phrase speech with proper voice assignment
 function speakGlossaryPhrase(word) {
     clearAudio();
     setAnimation(true);
 
     const rate = 0.85;
+    const bestVoice = getBestVoice(); // Get voice once
+    
     const u1 = new SpeechSynthesisUtterance("What does");
-    u1.lang = 'en-US'; u1.rate = rate;
+    u1.lang = 'en-US';
+    u1.rate = rate;
+    u1.voice = bestVoice; // ✅ Assign voice
+
     const u2 = new SpeechSynthesisUtterance(word);
-    u2.lang = 'en-US'; u2.rate = 0.75;
+    u2.lang = 'en-US';
+    u2.rate = 0.75;
+    u2.voice = bestVoice; // ✅ Assign voice
+
     const u3 = new SpeechSynthesisUtterance("mean?");
-    u3.lang = 'en-US'; u3.rate = rate;
+    u3.lang = 'en-US';
+    u3.rate = rate;
+    u3.voice = bestVoice; // ✅ Assign voice
 
     u1.onend = () => audioSequenceTimeouts.push(setTimeout(() => synth.speak(u2), 200));
     u2.onend = () => audioSequenceTimeouts.push(setTimeout(() => synth.speak(u3), 200));
@@ -446,7 +421,7 @@ function saveBookmarks() {
     localStorage.setItem('n400_bookmarks_v2', JSON.stringify(bookmarks));
 }
 
-// 書籤頁面
+// Bookmark screen
 function showBookmarks() {
     homeScreen.classList.add('hidden');
     bookmarkScreen.classList.remove('hidden');
